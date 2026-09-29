@@ -1253,7 +1253,7 @@ const SUPABASE_URL =
     'https://iccvfmuzczdoadhzyhlj.supabase.co';
 
 const SUPABASE_ANON_KEY =
-    'YOUR_EXISTING_PUBLISHABLE_KEY';
+    'sb_publishable_zdJ4XI6iUbanlMrSTTuyJg_23Jh32De';
 
 const CLOUD_CONFIG = {
     syncing: false,
