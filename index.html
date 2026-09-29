@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSurfer: City of Threads - 2D Endless Runner</title>
+    <meta name="description"
+        content="A fast-paced 2D 3-lane endless runner where you run through a city buried under textile waste, collect sustainable clothing, dodge landfill piles, and save the planet!">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Space+Grotesk:wght@500;700&family=Urbanist:wght@600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="stye.css">
+</head>
+
+<body>
+    <div id="app">
+        <div id="game-container">
+            <!-- Canvas for 2D graphics -->
+            <canvas id="gameCanvas" width="480" height="800"></canvas>
+
+            <!-- HUD Overlay -->
+            <div id="hud" class="overlay hidden">
+                <div class="hud-top">
+                    <div class="hud-card score-card">
+                        <span class="hud-label">SCORE</span>
+                        <span id="score-val" class="hud-val">0</span>
+                    </div>
+                    <button id="pause-btn" class="hud-card pause-card" title="Pause Game (Esc)">
+                        <div class="pause-icon-anim">
+                            <span class="pause-bar bar1"></span>
+                            <span class="pause-bar bar2"></span>
+                            <span class="play-tri"></span>
+                        </div>
+                        <span class="hud-label">PAUSE</span>
+                    </button>
+                    <div class="hud-card distance-card">
+                        <span class="hud-label">DISTANCE</span>
+                        <span id="distance-val" class="hud-val">0m</span>
+                    </div>
+                </div>
+
+                <div class="hud-eco">
+                    <div class="hud-card eco-card">
+                        <span class="hud-icon">🌱</span>
+                        <span id="eco-score-val" class="hud-val">0</span>
+                        <span class="hud-sub">Textiles Saved</span>
+                    </div>
+                </div>
+
+                <!-- Toast Banner for Eco Messages -->
+                <div id="eco-toast" class="toast hidden">
+                    <span id="toast-icon">🪡</span>
+                    <span id="toast-text">FIX IT. DON'T BIN IT.</span>
+                </div>
+
+                <!-- Active Power-ups Bar -->
+                <div id="powerup-bar" class="powerup-bar"></div>
+
+
+            </div>
+
+            <!-- Start Screen -->
+            <div id="start-screen" class="overlay screen">
+                <h1 class="game-title">ECO SURFER</h1>
+                <h2 class="game-subtitle">Project Evāra</h2>
+
+                <p class="story-desc">
+                    The city is being buried under textile waste! Run through the 3 lanes, collect reusable clothes, and
+                    dodge landfill hazards before it's too late.
+                </p>
+
+                <div class="controls-guide">
+                    <div class="guide-item">
+                        <kbd>←</kbd> <kbd>→</kbd> / <kbd>A</kbd> <kbd>D</kbd> / Swipe ↔️
+                        <span>Move Lanes</span>
+                    </div>
+                    <div class="guide-item">
+                        <kbd>↑</kbd> / <kbd>W</kbd> / Swipe ⬆️
+                        <span>Jump over Landfills</span>
+                    </div>
+                    <div class="guide-item">
+                        <kbd>↓</kbd> / <kbd>S</kbd> / Swipe ⬇️
+                        <span>Slide under Power Lines</span>
+                    </div>
+                </div>
+
+                <div class="powerups-preview">
+                    <h3>⚡ ECO POWER-UPS</h3>
+                    <div class="powerup-pills">
+                        <span class="pill" data-title="Repair Kit" data-desc="10s Auto-Repair Damaged Clothes">🪡 Repair
+                            Kit</span>
+                        <span class="pill" data-title="Circular Boost" data-desc="Magnet pulls nearby textiles">🧲
+                            Circular Boost</span>
+                        <span class="pill" data-title="Thrift Shield"
+                            data-desc="Absorbs 1 Hit & Doubles Reused Clothes">🛡️ Thrift Shield</span>
+                        <span class="pill" data-title="Upcycle Cutter" data-desc="Slices upcoming landfill waste">✂️
+                            Upcycle Cutter</span>
+                        <span class="pill" data-title="Zero-Waste" data-desc="Super invincibility mode">🌱
+                            Zero-Waste</span>
+
+                        <div id="powerup-popup" class="powerup-popup hidden">
+                            <div class="popup-timer-line"></div>
+                            <div class="popup-close-btn">×</div>
+                            <div class="popup-content">
+                                <strong class="popup-title"></strong>
+                                <p class="popup-desc"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="account-card-box">
+                    <div class="account-card-header" style="justify-content: center; position: relative;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; width: 100%; text-align: center;">
+                            <span class="account-card-icon">👤</span>
+                            <h3 class="account-card-title" id="account-box-title" style="text-align: center;">ACCOUNT PROFILE</h3>
+                        </div>
+                        <button id="close-account-tab-btn" class="account-close-btn hidden" aria-label="Close tab" style="position: absolute; right: 0;">✕</button>
+                    </div>
+                    
+                    <!-- Sign Up Form Container -->
+                    <div id="account-signup-container" class="account-form-grid hidden">
+                        <div class="account-input-group">
+                            <label class="account-label" for="account-username">USERNAME</label>
+                            <div class="username-input-wrapper">
+                                <input type="text" id="account-username" class="sleek-input account-input" placeholder="Enter username" maxlength="20">
+                                <div id="username-avail-tick" class="username-tick-badge hidden" aria-label="Username Available">
+                                    <svg class="animated-check-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                            <span id="username-taken-note" class="secret-name-note hidden" style="font-size: 0.7rem; color: #ff3366; margin-top: 0.25rem; font-weight: 700; letter-spacing: 0.4px;">Username TAKEN</span>
+                        </div>
+                        <div class="account-input-group">
+                            <label class="account-label" for="account-realname">REAL NAME</label>
+                            <input type="text" id="account-realname" class="sleek-input account-input" placeholder="Enter real name" maxlength="20">
+                            <span class="secret-name-note" style="display: block; font-size: 0.7rem; color: #ffffff; opacity: 0.65; margin-top: 0.25rem; font-weight: 500; letter-spacing: 0.4px;">Provide your REAL NAME</span>
+                        </div>
+                        <div class="account-input-group">
+                            <label class="account-label" for="account-password">PASSWORD</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="account-password" class="sleek-input account-input" placeholder="Enter password" maxlength="30">
+                                <button type="button" class="toggle-password-btn" data-target="account-password" aria-label="Toggle password visibility">
+                                    <svg class="eye-icon eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <svg class="eye-icon eye-closed hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <button id="create-account-btn" class="btn btn-info" style="width: 100%; margin-top: 0.4rem;">
+                            <span>CREATE</span>
+                        </button>
+                        <div style="text-align: center; margin-top: 0.4rem;">
+                            <span style="font-size: 0.8rem; color: #a0aec0;">Already have an account? </span>
+                            <button id="goto-signin-btn" class="btn-link-action" type="button">Sign In</button>
+                        </div>
+                    </div>
+
+                    <!-- Login Form Container -->
+                    <div id="account-login-container" class="account-form-grid hidden">
+                        <div class="account-input-group">
+                            <label class="account-label" for="login-username">USERNAME</label>
+                            <input type="text" id="login-username" class="sleek-input account-input" placeholder="Enter username" maxlength="20">
+                        </div>
+                        <div class="account-input-group">
+                            <label class="account-label" for="login-password">PASSWORD</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="login-password" class="sleek-input account-input" placeholder="Enter password" maxlength="30">
+                                <button type="button" class="toggle-password-btn" data-target="login-password" aria-label="Toggle password visibility">
+                                    <svg class="eye-icon eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <svg class="eye-icon eye-closed hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <button id="login-account-btn" class="btn btn-info" style="width: 100%; margin-top: 0.4rem;">
+                            <span>LOG IN</span>
+                        </button>
+                        <div style="text-align: center; margin-top: 0.4rem;">
+                            <span style="font-size: 0.8rem; color: #a0aec0;">Don't have an account? </span>
+                            <button id="goto-signup-btn" class="btn-link-action" type="button">Sign Up</button>
+                        </div>
+                    </div>
+
+                    <!-- Active User Profile Banner (Shown when logged in) -->
+                    <div id="active-user-profile" class="active-user-profile hidden">
+                        <div class="user-profile-badge">
+                            <div class="user-avatar-circle" id="user-profile-avatar"></div>
+                            <div class="user-profile-details">
+                                <span class="user-profile-name" id="user-profile-name"></span>
+                                <span class="user-profile-tag" id="user-profile-tag"></span>
+                            </div>
+                        </div>
+                        <div class="account-actions-row">
+                            <button id="logout-account-btn" class="btn-link-action logout-no-underline" type="button">Switch / Log Out</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="start-btn" class="btn btn-primary btn-glow">
+                    <span>PLAY GAME</span>
+                    <span class="btn-arrow">➔</span>
+                </button>
+
+                <div class="sound-toggle-bar"
+                    style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+                    <button id="sound-btn" class="btn btn-secondary">
+                        <span id="sound-icon">🔊</span> Sound: ON
+                    </button>
+                    <button id="view-leaderboard-start-btn" class="btn btn-secondary">
+                        🏆 Leaderboard
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tutorial / Symbol Guide Screen -->
+            <div id="tutorial-screen" class="overlay screen hidden">
+                <div id="tut-close-wrapper" class="tut-close-wrapper">
+                    <svg width="40" height="40" viewBox="0 0 40 40">
+                        <circle cx="20" cy="20" r="18" fill="rgba(0,0,0,0.5)" stroke="rgba(255,255,255,0.2)"
+                            stroke-width="4"></circle>
+                        <circle id="tut-timer-ring" cx="20" cy="20" r="18" fill="none" stroke="#00ff88" stroke-width="4"
+                            stroke-dasharray="113.1" stroke-dashoffset="113.1"></circle>
+                    </svg>
+                    <div class="tut-close-x">✕</div>
+                </div>
+
+                <h2 class="screen-title" style="font-size: 2.2rem; margin-bottom: 0.5rem; margin-top: 1rem;">KNOW YOUR
+                    SYMBOLS</h2>
+
+                <div class="tutorial-scroll-area">
+                    <div class="tutorial-grid">
+                        <div class="tut-col">
+                            <h3 style="color:#00ff88">🟢 COLLECT</h3>
+                            <div class="tut-item"><span class="tut-icon">👕</span> <span>Reusable Clothes</span></div>
+                            <div class="tut-item"><span class="tut-icon">🧵</span> <span>Repairable Clothes</span></div>
+                            <div class="tut-item"><span class="tut-icon">♻️</span> <span>Recyclable Textiles</span>
+                            </div>
+                        </div>
+                        <div class="tut-col">
+                            <h3 style="color:#ffaa00">⚠️ JUMP OVER</h3>
+                            <div class="tut-item"><span class="tut-shape"
+                                    style="border-bottom: 20px solid #8b5a2b; border-left: 15px solid transparent; border-right: 15px solid transparent; width:0; height:0;"></span>
+                                <span>Landfill Pile</span>
+                            </div>
+                            <div class="tut-item"><span class="tut-shape"
+                                    style="background: rgba(0, 100, 255, 0.5); width: 30px; height: 15px; border-radius: 50%;"></span>
+                                <span>Microplastics</span>
+                            </div>
+                        </div>
+                        <div class="tut-col">
+                            <h3 style="color:#ff3366">⬇️ SLIDE UNDER</h3>
+                            <div class="tut-item"><span class="tut-shape"
+                                    style="background:#ff3366; width:30px; height:8px; box-shadow: 0 0 5px #ff3366;"></span>
+                                <span>Fast Fashion Ad</span>
+                            </div>
+                            <div class="tut-item"><span class="tut-shape"
+                                    style="background:repeating-linear-gradient(45deg, #222, #222 5px, #ffaa00 5px, #ffaa00 10px); width:30px; height:8px;"></span>
+                                <span>Power Line</span>
+                            </div>
+                        </div>
+                        <div class="tut-col">
+                            <h3 style="color:#00d4ff">⚡ POWER-UPS</h3>
+                            <div class="tut-item"><span class="tut-icon">🪡</span> <span><b>Repair Kit:</b> 10s
+                                    Auto-repair clothes</span></div>
+                            <div class="tut-item"><span class="tut-icon">🧲</span> <span><b>Circular Boost:</b> Magnet
+                                    for textiles</span></div>
+                            <div class="tut-item"><span class="tut-icon">🛡️</span> <span><b>Thrift Shield:</b> Absorbs
+                                    1 Hit</span></div>
+                            <div class="tut-item"><span class="tut-icon">✂️</span> <span><b>Upcycle Cutter:</b> Slices
+                                    upcoming waste</span></div>
+                            <div class="tut-item"><span class="tut-icon">🌱</span> <span><b>Zero-Waste:</b>
+                                    Invincibility mode</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level Up Screen -->
+            <div id="level-up-screen" class="overlay screen hidden">
+                <div class="game-over-header">
+                    <span class="over-badge" style="background: #00ff88; color: #000;">MILESTONE REACHED</span>
+                    <h2 class="screen-title" style="color: #00ff88; font-size: 3rem;">LEVEL 2</h2>
+                </div>
+                <p class="story-desc"
+                    style="font-size: 1.1rem; color: #fff; max-width: 90%; margin: 0 auto 0.8rem auto;">
+                    It is getting faster and harder! New hazards detected:
+                </p>
+
+                <div class="hazard-card"
+                    style="background: rgba(16, 25, 38, 0.75); border: 1px solid rgba(255, 51, 102, 0.5); border-radius: 12px; padding: 0.8rem 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.8rem; margin: 0.2rem auto 1.2rem auto; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.25);">
+                    <span
+                        style="background: #ff0000; width: 22px; height: 22px; border-radius: 4px; display: inline-block; box-shadow: 0 0 10px rgba(255, 0, 0, 0.6);"></span>
+                    <span id="cement-kilns-title-text" class="typewriter-cursor"
+                        style="font-size: 1.25rem; font-weight: 800; color: #fff; font-family: 'Space Grotesk', sans-serif;"></span>
+                    <span style="font-size: 1.3rem;">🏭</span>
+                </div>
+
+                <p class="story-desc"
+                    style="font-size: 1rem; color: rgba(255, 255, 255, 0.85); max-width: 90%; margin: 0 auto 1.8rem auto;">
+                    Do you want to proceed?
+                </p>
+                <div class="pause-actions">
+                    <button id="proceed-level-btn" class="btn btn-primary btn-glow">PROCEED</button>
+                    <button id="quit-level-btn" class="btn btn-secondary">QUIT TO MENU</button>
+                </div>
+            </div>
+
+            <!-- Level 3 Screen -->
+            <div id="level3-screen" class="overlay screen hidden">
+                <div class="game-over-header">
+                    <span class="over-badge" style="background: #ffaa00; color: #000;">100 TEXTILES RESCUED!</span>
+                    <h2 class="screen-title" style="color: #ffaa00; font-size: 3rem;">LEVEL 3</h2>
+                </div>
+                <p class="story-desc"
+                    style="font-size: 1.1rem; color: #fff; max-width: 90%; margin: 0 auto 1.5rem auto;">
+                    It will get even faster. To proceed, you must sacrifice one power-up. Click on the symbol you want
+                    to remove permanently:
+                </p>
+                <div class="sacrifice-grid">
+                    <div class="sacrifice-btn" data-powerup="repairKit"><span class="tut-icon">🪡</span><span>Repair
+                            Kit</span></div>
+                    <div class="sacrifice-btn" data-powerup="circularBoost"><span
+                            class="tut-icon">🧲</span><span>Magnet</span></div>
+                    <div class="sacrifice-btn" data-powerup="thriftShield"><span
+                            class="tut-icon">🛡️</span><span>Shield</span></div>
+                    <div class="sacrifice-btn" data-powerup="upcycleCutter"><span
+                            class="tut-icon">✂️</span><span>Cutter</span></div>
+                    <div class="sacrifice-btn" data-powerup="zeroWaste"><span
+                            class="tut-icon">🌱</span><span>Zero-Waste</span></div>
+                </div>
+                <div class="pause-actions" style="margin-top: 2rem;">
+                    <button id="quit-level3-btn" class="btn btn-secondary">QUIT TO MENU</button>
+                </div>
+            </div>
+
+            <!-- Pause Screen -->
+            <div id="pause-screen" class="overlay screen hidden">
+                <h2 class="screen-title">GAME PAUSED</h2>
+                <div class="pause-actions">
+                    <button id="resume-btn" class="btn btn-info">RESUME</button>
+                    <button id="restart-pause-btn" class="btn btn-secondary">RESTART</button>
+                </div>
+            </div>
+
+            <!-- Dev Timer Screen -->
+            <div id="dev-timer-screen" class="overlay screen hidden"
+                style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(1px); z-index: 50;">
+                <h2 id="dev-countdown-text" class="screen-title"
+                    style="color: #ffffff; font-size: 5rem; text-shadow: none; letter-spacing: 2px;">3</h2>
+            </div>
+
+            <!-- Death Transition Screen -->
+            <div id="death-transition-screen" class="overlay screen hidden"
+                style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px); z-index: 50; transition: opacity 1.5s ease;">
+                <h2 id="death-reason-text" class="screen-title typewriter-text"
+                    style="color: #ffffff; font-size: 2.2rem; text-shadow: none; letter-spacing: 2px;"></h2>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div id="game-over-screen" class="overlay screen hidden">
+                <div class="game-over-header">
+                    <span class="over-badge">RUN COMPLETED</span>
+                    <h2 id="game-over-title" class="screen-title">LANDFILL OVERFLOW!</h2>
+                </div>
+
+                <div class="eco-rating-box">
+                    <div class="rating-label">ECO RATING</div>
+                    <div id="eco-grade" class="rating-grade">A+</div>
+                    <div id="eco-grade-subtitle" class="rating-sub">Master Circular Fashionista</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-num" id="final-score">0</span>
+                        <span class="stat-lbl">Final Score</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-num" id="high-score">0</span>
+                        <span class="stat-lbl">Best Score</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-num" id="final-clothes">0</span>
+                        <span class="stat-lbl">Clothes Rescued</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-num" id="final-distance">0m</span>
+                        <span class="stat-lbl">Distance Run</span>
+                    </div>
+                </div>
+
+                <div class="leaderboard-submit-box" style="margin-bottom: 1.2rem;">
+                    <label class="leaderboard-input-label" for="leaderboard-name-input">SUBMIT SCORE TO LEADERBOARD</label>
+                    <input type="text" id="leaderboard-name-input" class="sleek-input" placeholder="Your Name"
+                        maxlength="20" readonly disabled style="opacity: 0.9; cursor: not-allowed; background: rgba(0, 0, 0, 0.6); color: #00d4ff; border-color: rgba(0, 212, 255, 0.4);">
+                    <span class="secret-name-note" style="display: block; font-size: 0.7rem; color: #00d4ff; opacity: 0.8; margin-top: 0.35rem; font-weight: 600; letter-spacing: 0.4px;">🔒 Locked to your Account Name</span>
+                    <button id="submit-leaderboard-btn" class="btn btn-warning btn-gold"
+                        style="width: 100%; margin-top: 0.8rem;">🏆 SUBMIT SCORE</button>
+                </div>
+
+                <div class="eco-impact-box" style="position: relative;">
+                    <button id="download-impact-btn" class="download-impact-icon-btn" title="Download Eco Impact PNG Card" aria-label="Download PNG">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </button>
+                    <h3>🌍 YOUR ECO IMPACT</h3>
+                    <div id="player-name-display" class="player-name-msg"></div>
+                    <div class="impact-list">
+                        <div class="impact-item">
+                            <span>⭐ Score Achieved:</span>
+                            <strong id="impact-score">0</strong>
+                        </div>
+                        <div class="impact-item">
+                            <span>📏 Distance Traveled:</span>
+                            <strong id="impact-distance">0m</strong>
+                        </div>
+                        <div class="impact-item">
+                            <span>🗑️ Landfills Diverted:</span>
+                            <strong id="impact-landfills">0 kg</strong>
+                        </div>
+                        <div class="impact-item">
+                            <span>🧴 Microplastics Prevented:</span>
+                            <strong id="impact-microplastics">0 g</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-over-actions">
+                    <button id="restart-btn" class="btn btn-primary btn-glow">IMPROVE YOUR SCORE</button>
+                    <button id="share-btn" class="btn btn-secondary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        Share
+                    </button>
+                    <button id="menu-btn" class="btn btn-info">MAIN MENU</button>
+                </div>
+            </div>
+
+            <!-- Full Screen Leaderboard Modal -->
+            <div id="leaderboard-modal" class="overlay screen hidden"
+                style="z-index: 60; background: #0b131f; padding: 0;">
+                <div class="duo-lb-container">
+                    <!-- Top Header Bar -->
+                    <div class="duo-lb-header">
+                        <button id="close-leaderboard-btn" class="duo-back-btn" aria-label="Close leaderboard">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
+                        <div style="text-align: center;">
+                            <h2 class="duo-header-title">📅 WEEKLY LEADERBOARD</h2>
+                            <div id="weekly-reset-subtext" class="weekly-reset-subtext">Resets in - days</div>
+                        </div>
+                        <div style="width: 38px;"></div>
+                    </div>
+
+                    <!-- Subtext Banner for Instagram Shout-out -->
+                    <div class="lb-subtext-banner">
+                        <span class="lb-subtext-icon">📸</span>
+                        <p class="lb-subtext-msg">Weekly Champions get featured on our Instagram page! <a
+                                href="https://www.instagram.com/projectevara26/" target="_blank"
+                                style="color: var(--secondary-color); text-decoration: underline; font-weight: 700;">@projectevara26</a>
+                        </p>
+                    </div>
+
+                    <!-- Scrollable Player List -->
+                    <div class="duo-lb-list-wrapper">
+                        <div id="leaderboard-list" class="duo-lb-list">
+                            <!-- Populated dynamically as simple boxes -->
+                        </div>
+                    </div>
+
+                    <!-- Footer Action -->
+                    <div class="duo-lb-footer">
+                        <button id="close-leaderboard-actions-btn" class="btn btn-info"
+                            style="width: 100%; max-width: 320px;">BACK TO MENU</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Level 4 Screen -->
+            <div id="level4-screen" class="overlay screen hidden">
+                <div class="game-over-header">
+                    <span class="over-badge" style="background: #e1306c; color: #fff;">LEVEL 4 REACHED!</span>
+                    <h2 class="screen-title" style="color: #e1306c; font-size: 3rem;">ENDLESS MODE</h2>
+                </div>
+                <p class="story-desc" style="font-size: 1.1rem; color: #fff; max-width: 90%; margin: 0 auto 1rem auto;">
+                    You're unstoppable! Before the final endless sprint begins, join the movement:
+                </p>
+
+                <div class="insta-card">
+                    <div class="insta-header">
+                        <div class="insta-avatar">🌱</div>
+                        <div class="insta-info">
+                            <h3>projectevara26</h3>
+                            <span>Project Evāra</span>
+                        </div>
+                    </div>
+                    <a href="https://www.instagram.com/projectevara26/" target="_blank" class="insta-btn"
+                        id="insta-follow-btn">Visit our Page 🌎</a>
+                </div>
+
+                <div class="game-over-actions" style="margin-top: 1.5rem; flex-direction: column; align-items: center;">
+                    <p id="level4-follow-text"
+                        style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-bottom: 10px; font-weight: bold;">
+                        Support us while you play!</p>
+                    <button id="level4-proceed-btn" class="btn btn-primary btn-glow"
+                        style="width: 100%; max-width: 300px; background-color: #c85a77; color: white;">PROCEED
+                        NOW</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
