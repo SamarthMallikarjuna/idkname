@@ -1,3 +1,13 @@
+const SUPABASE_URL = 'https://iccvfmuzczdoadhzyhlj.supabase.co';
+
+const SUPABASE_ANON_KEY =
+    'sb_publishable_zdJ4XI6iUbanlMrSTTuyJg_23Jh32De';
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
+
 // Game Configuration & Constants
 const CONFIG = {
     canvasWidth: 480,
@@ -1243,20 +1253,6 @@ function gameLoop(timestamp) {
 // SUPABASE CLOUD STORAGE
 // Replaces the old JSONBin + ExtendsClass system
 // ============================================================
-
-const SUPABASE_URL = 'https://iccvfmuzczdoadhzyhlj.supabase.co';
-
-const SUPABASE_ANON_KEY =
-    'sb_publishable_zdJ4XI6iUbanlMrSTTuyJg_23Jh32De';
-
-const SUPABASE_LEADERBOARD_URL =
-    `${SUPABASE_URL}/rest/v1/leaderboard`;
-
-const CLOUD_CONFIG = {
-    syncing: false,
-    lastSyncTime: 0
-};
-
 
 // ------------------------------------------------------------
 // SUPABASE HEADERS
